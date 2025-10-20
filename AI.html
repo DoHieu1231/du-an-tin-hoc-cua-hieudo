@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>AI cảnh báo ô nhiễm - giao diện</title>
+	<style>
+		:root{
+			/* default tokens (used across the page) */
+			--bg: linear-gradient(180deg,#f7fbff,#eef6ff);
+			--nav: #072b4f;
+			--nav-text: #ffffff;
+			--text: #072b4f;
+			--muted: rgba(7,43,79,0.7);
+			--card-bg: linear-gradient(180deg,#eaf7ff,#cfefff);
+			--card-text: #ffffff;
+
+			/* level colors (kept for thumb fallback) */
+			--good: #2ecc71;
+			--moderate: #f1c40f;
+			--unhealthy: #ff8c00;
+			--hazard: #e74c3c;
+		}
+		*{box-sizing:border-box;margin:0;padding:0}
+
+		/* Use tokens so text/nodes change with level classes */
+		body{
+			font-family: "Segoe UI", Roboto, Arial, sans-serif;
+			background: var(--bg);
+			color: var(--text);
+			min-height:100vh;
+			line-height:1.4;
+			transition: background .28s ease, color .28s ease;
+		}
+
+		/* Top bar uses nav tokens */
+		.topbar{
+			background:var(--nav);
+			border-bottom:4px solid rgba(0,0,0,0.06);
+			padding:20px 28px;
+			color:var(--nav-text);
+			transition: background .28s ease, border-color .28s ease, color .28s ease;
+		}
+		.brand{ font-weight:800; letter-spacing:2px; display:inline-block; line-height:1.05; color:var(--nav-text) }
+		.brand span{display:block} /* stack REAL / TECH */
+
+		/* Main layout */
+		.wrapper{
+			/* CHANGED: reduce vertical space so page fits without scrolling */
+			max-width:980px;
+			margin:12px auto;        /* reduced */
+			padding:0 16px 20px;     /* reduced bottom padding */
+			position:relative;
+		}
+
+		.hero{
+			display:flex;
+			justify-content:center;
+		}
+		.hero img{
+			/* CHANGED: make image smaller to avoid scrolling */
+			max-width:420px;    /* reduced */
+			max-height:300px;   /* reduced */
+			width:100%;
+			height:auto;
+			object-fit:cover;
+			display:block;
+			border:0;
+			box-shadow:0 6px 20px rgba(2,10,30,0.12);
+		}
+
+		/* Info card overlapping image (lower-left) */
+		.info-card{
+			position:absolute;
+			left:16px;                    /* closer to edge */
+			top: calc(40%);               /* moved a bit higher */
+			background: var(--card-bg);
+			color: var(--card-text);
+			padding:14px 18px;            /* reduced padding */
+			min-width:220px;              /* reduced width */
+			max-width:46%;                /* keep it compact next to image */
+			box-shadow: 0 14px 30px rgba(2,8,20,0.28);
+			transform: translateY(0);
+			font-size:14px;               /* slightly smaller text */
+			transition: background .28s ease, color .28s ease;
+		}
+		.info-card h3{ font-size:17px; margin-bottom:8px; color:var(--card-text) }
+		.info-card ol{ max-height:220px; overflow:auto; padding-right:6px; color:var(--card-text) }
+
+		/* slider + value use tokens */
+		.slider-row{ display:flex; align-items:center; gap:10px; }
+		.slider-row input[type="range"]{ flex:1; height:28px; -webkit-appearance:none; -moz-appearance:none; appearance:none; background:transparent; transition: background .15s linear; }
+		.slider-row input[type="range"]::-webkit-slider-runnable-track{ height:8px; border-radius:6px; background:#ddd; }
+		/* CHANGED: thumb color comes from --thumb custom property (set per-slider in JS) */
+		.slider-row input[type="range"]::-webkit-slider-thumb{ -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background: var(--thumb, var(--accent, #ff8c00)); margin-top:-4px; box-shadow:0 2px 6px rgba(0,0,0,0.2); }
+		.slider-row input[type="range"]::-moz-range-track{ height:8px; border-radius:6px; background:#ddd; }
+		/* CHANGED: use --thumb for Firefox thumb too */
+		.slider-row input[type="range"]::-moz-range-thumb{ width:16px; height:16px; border-radius:50%; background: var(--thumb, var(--accent, #ff8c00)); border:0; }
+		.value{ min-width:48px; text-align:right; font-weight:800; color:var(--card-text); }
+
+		/* small screens */
+		@media (max-width:840px){
+			.wrapper{padding-bottom:16px}
+			.info-card{ position:static; margin:10px auto 0; left:0; top:0; transform:none; max-width:520px; padding:12px 14px; font-size:14px; }
+			.hero img{ max-height:260px }
+		}
+
+		/* Level-specific tokens override (body class toggled by JS) */
+		.level-good{
+			--bg: linear-gradient(180deg,#f0fff4,#e6fff0);
+			--nav: #0a6b3a;
+			--nav-text: #ffffff;
+			--text: #023923;
+			--muted: rgba(2,57,35,0.7);
+			--card-bg: linear-gradient(180deg, rgba(46,204,113,0.14), rgba(8,55,122,0.9));
+			--card-text: #ffffff;
+			--accent: var(--good);
+		}
+		.level-moderate{
+			--bg: linear-gradient(180deg,#fffbe8,#fff6d6);
+			--nav: #b07d00;
+			--nav-text: #08110a;
+			--text: #5a4a00;
+			--muted: rgba(90,74,0,0.7);
+			--card-bg: linear-gradient(180deg, rgba(241,196,15,0.12), rgba(8,55,122,0.9));
+			--card-text: #07110a;
+			--accent: var(--moderate);
+		}
+		.level-unhealthy{
+			--bg: linear-gradient(180deg,#fff5ea,#fff0e6);
+			--nav: #8a4f00;
+			--nav-text: #08110a;
+			--text: #5a3500;
+			--muted: rgba(90,53,0,0.7);
+			--card-bg: linear-gradient(180deg, rgba(255,152,0,0.12), rgba(8,55,122,0.9));
+			--card-text: #07110a;
+			--accent: var(--unhealthy);
+		}
+		.level-hazard{
+			--bg: linear-gradient(180deg,#fff1f1,#ffe7e7);
+			--nav: #7a1f1f;
+			--nav-text: #ffffff;
+			--text: #4b0000;
+			--muted: rgba(75,0,0,0.7);
+			--card-bg: linear-gradient(180deg, rgba(231,76,60,0.12), rgba(8,55,122,0.9));
+			--card-text: #ffffff;
+			--accent: var(--hazard);
+		}
+
+		/* ensure interactive elements adapt */
+		.level-good .slider-row input[type="range"]::-webkit-slider-thumb{ background: var(--good); }
+		.level-moderate .slider-row input[type="range"]::-webkit-slider-thumb{ background: var(--moderate); }
+		.level-unhealthy .slider-row input[type="range"]::-webkit-slider-thumb{ background: var(--unhealthy); }
+		.level-hazard .slider-row input[type="range"]::-webkit-slider-thumb{ background: var(--hazard); }
+	</style>
+</head>
+<body>
+	<header class="topbar">
+		<div class="brand"><span>REAL</span><span>TECH</span></div>
+	</header>
+
+	<main class="wrapper">
+		<div class="hero">
+			<!-- ảnh mẫu; thay bằng ảnh của bạn nếu cần -->
+			<img src="bao-ve-moi-truong-xanh-bao-ve-nguon-song.jpg" alt="Bảo vệ môi trường - xanh bảo vệ nguồn sống" />
+		</div>
+
+		<section class="info-card" aria-label="Mức độ ô nhiễm">
+			<h3>Mức độ ô nhiễm</h3>
+			<ol>
+				<li class="poll-item">
+					<div class="label">Ô nhiễm bụi</div>
+					<div class="slider-row">
+						<input type="range" min="0" max="100" value="35" data-target="v1">
+						<div class="value" id="v1">35%</div>
+					</div>
+				</li>
+				<li class="poll-item">
+					<div class="label">Ô nhiễm khí độc</div>
+					<div class="slider-row">
+						<input type="range" min="0" max="100" value="20" data-target="v2">
+						<div class="value" id="v2">20%</div>
+					</div>
+				</li>
+				<li class="poll-item">
+					<div class="label">Ô nhiễm do khói</div>
+					<div class="slider-row">
+						<input type="range" min="0" max="100" value="50" data-target="v3">
+						<div class="value" id="v3">50%</div>
+					</div>
+				</li>
+				<li class="poll-item">
+					<div class="label">Ô nhiễm phóng xạ và hóa chất bay hơi</div>
+					<div class="slider-row">
+						<input type="range" min="0" max="100" value="5" data-target="v4">
+						<div class="value" id="v4">5%</div>
+					</div>
+				</li>
+			</ol>
+		</section>
+	</main>
+
+	<script>
+		// update slider fill, display and set page level class based on max value
+		(function(){
+			const sliders = Array.from(document.querySelectorAll('.info-card input[type="range"]'));
+
+			// NOTE: we no longer change the track background; instead we set --thumb on each slider
+			function setThumb(slider, color){
+				slider.style.setProperty('--thumb', color);
+			}
+
+			function levelClassFor(value){
+				if(value >= 76) return 'level-hazard';
+				if(value >= 51) return 'level-unhealthy';
+				if(value >= 26) return 'level-moderate';
+				return 'level-good';
+			}
+
+			function updateAll(){
+				// update displayed values and fill for each slider
+				sliders.forEach(s => {
+					const out = document.getElementById(s.dataset.target);
+					if(out) out.textContent = s.value + '%';
+				});
+
+				// compute max and pick class
+				const maxVal = Math.max(...sliders.map(s => Number(s.value)));
+				const cls = levelClassFor(maxVal);
+
+				// apply class to body (remove previous level-*)
+				document.body.classList.remove('level-good','level-moderate','level-unhealthy','level-hazard');
+				document.body.classList.add(cls);
+
+				// choose color based on class for fills
+				const colorMap = {
+					'level-good': getComputedStyle(document.documentElement).getPropertyValue('--good').trim(),
+					'level-moderate': getComputedStyle(document.documentElement).getPropertyValue('--moderate').trim(),
+					'level-unhealthy': getComputedStyle(document.documentElement).getPropertyValue('--unhealthy').trim(),
+					'level-hazard': getComputedStyle(document.documentElement).getPropertyValue('--hazard').trim()
+				};
+
+				// update each slider thumb color based on its own value category
+				sliders.forEach(s => {
+					const pct = Number(s.value);
+					let itemClass;
+					if(pct >= 76) itemClass = 'level-hazard';
+					else if(pct >= 51) itemClass = 'level-unhealthy';
+					else if(pct >= 26) itemClass = 'level-moderate';
+					else itemClass = 'level-good';
+					const itemColor = colorMap[itemClass] || colorMap[cls];
+					setThumb(s, itemColor);
+				});
+			}
+
+			// attach listeners
+			sliders.forEach(s => {
+				s.addEventListener('input', updateAll);
+			});
+
+			// initial update
+			updateAll();
+		})();
+	</script>
+</body>
+</html>

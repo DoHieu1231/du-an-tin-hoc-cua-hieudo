@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>AI cảnh báo ô nhiễm không khí</title>
+	<style>
+		:root{
+			--bg-top:#2b2b2b;
+			--bg-bottom:#6b6b6b;
+			--accent:#ffc107;
+			--muted:#cfd8dc;
+			--card-shadow: rgba(2,7,20,0.45);
+			--max-width:1180px;
+		}
+		*{box-sizing:border-box;margin:0;padding:0}
+		body{
+			font-family: "Segoe UI", Roboto, Arial, sans-serif;
+			background: linear-gradient(180deg,var(--bg-top),var(--bg-bottom));
+			color: #fff;
+			min-height:100vh;
+			line-height:1.4;
+			-webkit-font-smoothing:antialiased;
+		}
+
+		/* CHANGED: reduce overall spacing so page fits better */
+		.page{
+			max-width:var(--max-width);
+			margin:10px auto;       /* reduced from 28px */
+			padding:12px;           /* reduced from 28px */
+		}
+
+		/* Header top spacing reduced */
+		.header{
+			display:flex;
+			justify-content:space-between;
+			align-items:center;
+			margin-bottom:14px; /* reduced from 36px */
+		}
+		.logo{
+			display:flex;
+			align-items:center;
+			gap:12px;
+		}
+		.logo .mark{
+			width:44px;height:44px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#000;font-weight:800;
+			box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+		}
+		.logo .brand{font-weight:800;letter-spacing:1px;font-size:18px;color:#fff}
+
+		.cta-top{
+			background:var(--accent);
+			color:#000;
+			padding:10px 18px;
+			border-radius:8px;
+			font-weight:700;
+			box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+			cursor:pointer;
+		}
+
+		/* HERO */
+		.hero{
+			display:flex;
+			gap:16px;            /* reduced gap */
+			align-items:center;
+			justify-content:space-between;
+		}
+		.left{
+			flex:1 1 58%;
+			padding-right:12px;  /* reduced padding */
+		}
+		.right{
+			flex:1 1 40%;
+			position:relative;
+			min-height:280px;
+			display:flex;
+			align-items:center;
+			justify-content:center;
+		}
+
+		.tag{ color:var(--muted); margin-bottom:14px; font-size:16px }
+		.title{
+			font-size:40px;      /* reduced from 56px */
+			line-height:1;
+			font-weight:800;
+			margin:0 0 10px 0;   /* reduced bottom margin */
+			letter-spacing:0.3px;
+		}
+		.title .accent{ color:var(--accent) }
+
+		.desc{ color: #e6eef3; max-width:480px; margin-bottom:14px; font-size:15px; }
+
+		.play{
+			display:inline-flex;
+			align-items:center;
+			gap:14px;
+			cursor:pointer;
+
+			/* CHANGED: ensure when .play used on an <a> it has no underline and is keyboard-focusable */
+			text-decoration: none;
+		}
+		.play:focus-visible{ outline: 3px solid rgba(255,193,7,0.25); border-radius:8px; }
+
+		.play .btn{
+			width:52px;height:52px; /* reduced size */
+			background:var(--accent);display:flex;align-items:center;justify-content:center;color:#000;font-weight:800;
+			box-shadow: 0 8px 26px rgba(0,0,0,0.35);
+			transition: transform .18s ease;
+
+			/* CHANGED: make the arrow larger and vertically centered */
+			font-size: 22px;
+			line-height: 1;
+		}
+		.play .btn:hover{ transform: scale(1.06) }
+		.play .text{ font-size:13px }
+
+		/* stacked visuals on right - smaller overall */
+		.stack{
+			position:relative;
+			width:260px;           /* reduced */
+			height:200px;          /* reduced */
+		}
+		.stack .card{
+			position:absolute;
+			border-radius:6px;
+			overflow:hidden;
+			box-shadow: 0 18px 40px var(--card-shadow);
+			background:#fff;
+			border:6px solid rgba(255,255,255,0.03);
+		}
+		.stack .card img{display:block;width:100%;height:100%;object-fit:cover}
+
+		.stack .card.one{ width:180px; height:110px; right:0; top:18px; transform: rotate(-3deg); }
+		.stack .card.two{ width:210px; height:130px; left:8px; bottom:6px; transform: rotate(2deg); }
+		.stack .card.three{ width:150px; height:90px; right:22px; bottom:-12px; transform: rotate(-6deg); }
+
+		/* small description or action under hero */
+		.extra{
+			margin-top:12px; /* reduced */
+			color:var(--muted);
+			font-size:13px;
+		}
+
+		/* Responsive tweaks */
+		@media (max-width:920px){
+			.hero{flex-direction:column;align-items:flex-start}
+			.left{width:100%;padding-right:0}
+			.title{font-size:30px}
+			.stack{width:260px;height:180px;margin-top:12px}
+		}
+		@media (max-width:520px){
+			.page{padding:10px}
+			.title{font-size:22px}
+			.stack{width:220px;height:160px}
+			.stack .card.one{ width:150px;height:100px }
+			.stack .card.two{ width:170px;height:100px }
+			.stack .card.three{ width:120px;height:80px }
+		}
+	</style>
+</head>
+<body>
+	<div class="page">
+		<header class="header">
+			<div class="logo">
+				<div class="mark">Real</div>
+				<div class="brand">Tech</div>
+			</div>
+			<a class="cta-top" href="AI.html">Thử AI</a>
+		</header>
+
+		<main class="hero" role="main">
+			<div class="left">
+				<div class="tag">Giám sát môi trường</div>
+				<h1 class="title">AI Cảnh Báo <span class="accent">Ô Nhiễm Không Khí</span></h1>
+				<p class="desc">Nền tảng sử dụng cảm biến tích hợp và mô hình AI để đo, phân tích và cảnh báo sớm khi chất lượng không khí xấu. Hệ thống hiển thị chỉ số thời gian thực, dự báo xu hướng và đề xuất biện pháp bảo vệ sức khỏe cho người dùng.</p>
+
+				<!-- CHANGED: make play a real link to AI.html -->
+				<a class="play" href="AI.html" aria-label="Xem demo AI">
+					<div class="btn" aria-hidden="true">►</div>
+					<div class="text">nhấn vào nút sau để trải nghiệm</div>
+				</a>
+
+			</div>
+
+			<div class="right" aria-hidden="false">
+				<div class="stack" aria-hidden="false">
+					<div class="card one">
+						<img src="https://images.unsplash.com/photo-1551817958-20204f5f1c0d?auto=format&fit=crop&w=800&q=60" alt="cảm biến không khí">
+					</div>
+					<div class="card two">
+						<img src="https://images.unsplash.com/photo-1504208434309-cb69f4fe52b0?auto=format&fit=crop&w=800&q=60" alt="thành phố ô nhiễm">
+					</div>
+					<div class="card three">
+						<img src="https://images.unsplash.com/photo-1542317854-2f9e26d6b5af?auto=format&fit=crop&w=800&q=60" alt="phân tích dữ liệu">
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<section class="extra">
+			<p>Ngắn gọn: Hệ thống AI cảnh báo ô nhiễm cung cấp dữ liệu thời gian thực, biểu đồ xu hướng và khuyến nghị hành động (mở cửa sổ, đeo khẩu trang, tránh khu vực) để bảo vệ sức khỏe cộng đồng.</p>
+		</section>
+	</div>
+</body>
+</html>
